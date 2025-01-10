@@ -1,0 +1,162 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Test Site</title>
+    </head>
+    <body>
+        <div>
+            <style>
+                #webchat-container {
+                    border: solid;
+                    border-color: grey;
+                }
+
+                /* Web Chat container styles */
+                .hidden-webchat-container {
+                    display: none;
+                }
+
+                #webchat {
+                    height: 400px;
+                }
+
+                .showed-webchat-container {
+                    position: fixed;
+                    min-width: 300px;
+                    width: 25%;
+                    bottom: 100px;
+                    right: 20px;
+                    background-color: #f4f4f4; /* Container background */
+                    border-radius: 2px;
+                    border-color: #284c6c;
+                    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                /* Bot button styles */
+                #botButton {
+                    z-index: 1000;
+                    width: 130px;
+                    border-radius: 60px;
+                    border: 0;
+                    color: white;
+                    background-color: #299be8;
+                    box-shadow: 0px 3px 12px rgba(0, 0, 0, 0.2);
+                    background-size: 50%;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    position: fixed;
+                    bottom: 30px;
+                    right: 30px;
+                    font-family: aktiv-grotesk;
+                    font-size: 15px;
+                }
+            </style>
+
+            <button id="botButton" name="botButton">How can we help you today?</button>
+            <!-- Web Chat container -->
+            <div id="webchat-container" name="webchat-container" class="hidden-webchat-container">
+                <div id="webchat" name="webchat"></div>
+            </div>
+            <script src="https://cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>
+            <script>
+            // Create new webchat container
+            function createNewWebChatContainer() {
+                let webchatContainer = document.getElementById("webchat-container");
+                // Delete previous container
+                const oldWebChat = document.getElementById('webchat');
+                if (oldWebChat) {
+                    oldWebChat.remove();
+                }
+
+                // Create a new webchat
+                const newWebChat = document.createElement('div');
+                newWebChat.id = 'webchat';
+                newWebChat.namespaceURI = 'webchat';
+                webchatContainer.appendChild(newWebChat);
+
+                return newWebChat;
+            }
+
+            // Get backend token
+            async function getToken() {
+                try {
+                    const response = await fetch('https://botga-bot-a96a-rarias.azurewebsites.net/api/directline/token', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data && data.token) {
+                        return data.token; // Return access token
+                    } else {
+                        console.error('Token not available.');
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('Error getting token:', error);
+                    return null;
+                }
+            }
+
+            // Web Chat configuration function
+            async function setupWebChat() {
+                const token = await getToken(); // Get token from backend
+
+                // Crea un nuevo contenedor limpio para el WebChat
+                const newWebChatContainer = createNewWebChatContainer();
+
+                if (token) {
+                    // Create the Web Chat container and send it to the render function
+                    window.WebChat.renderWebChat(
+                        {
+                            directLine: window.WebChat.createDirectLine({ token: token }),
+                            userID: 'user123', // User ID
+                            username: 'Usuario', // Username
+                            locale: 'en-BZ', // Language
+                            styleOptions: {
+                                primaryFont: "aktiv-grotesk",
+                                backgroundColor: '#fff', // Chat background color
+                                bubbleBackground: '#284c6c', // Bubble color
+                                bubbleBorderRadius: "10px",
+                                bubbleFromUserBorderRadius: "10px",
+                                bubbleFromUserBackground: '#ebebeb', // User bubble color
+                                bubbleFromUserTextColor: '#000',
+                                bubbleTextColor: '#fff',
+                                botAvatarBackgroundColor: '#ebebeb',
+                                botAvatarInitials: '', // Avatar initials
+                                botAvatarImage: 'https://botga-bot-a96a-rarias.azurewebsites.net/api/image/avatar',
+                                hideUploadButton: true
+                            },
+                        },
+                        newWebChatContainer // Container where the Web Chat is loaded
+                    );
+                } else {
+                    console.error('Failed to configure Web Chat, token not obtained.');
+                }
+            }
+
+            function changeWebChatState() {
+                let webchatContainer = document.getElementById("webchat-container");
+
+                if (webchatContainer.className !== "hidden-webchat-container") {
+                    webchatContainer.className = "hidden-webchat-container";
+                    webchatContainer.innerHTML = '';
+                } else {
+                    setupWebChat();
+                    webchatContainer.className = "showed-webchat-container";
+                }
+            }
+
+            const botButton = document.getElementById("botButton");
+            this.botButton.addEventListener("click", (event) => {
+                this.changeWebChatState();
+            });
+
+            </script>
+        </div>
+    </body>
+</html>
