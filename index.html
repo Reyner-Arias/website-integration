@@ -80,8 +80,8 @@
                 return newWebChat;
             }
 
-            // Get backend token
-            async function getToken() {
+                        // Get backend ConfigInfo
+            async function getConfigInfo() {
                 try {
                     const response = await fetch('https://botga-bot-a96a-rarias.azurewebsites.net/api/directline/token', {
                         method: 'GET',
@@ -92,8 +92,8 @@
 
                     const data = await response.json();
 
-                    if (data && data.token) {
-                        return data.token; // Return access token
+                    if (data && data.Token && data.UserId) {
+                        return data; // Return access token
                     } else {
                         console.error('Token not available.');
                         return null;
@@ -106,17 +106,17 @@
 
             // Web Chat configuration function
             async function setupWebChat() {
-                const token = await getToken(); // Get token from backend
+                const ConfigInfo = await getConfigInfo(); // Get config info (token and userId) from backend
 
                 // Crea un nuevo contenedor limpio para el WebChat
                 const newWebChatContainer = createNewWebChatContainer();
 
-                if (token) {
+                if (ConfigInfo) {
                     // Create the Web Chat container and send it to the render function
                     window.WebChat.renderWebChat(
                         {
-                            directLine: window.WebChat.createDirectLine({ token: token }),
-                            userID: 'user123', // User ID
+                            directLine: window.WebChat.createDirectLine({ token: ConfigInfo.Token }),
+                            userID: ConfigInfo.UserId, // User ID
                             username: 'Usuario', // Username
                             locale: 'en-BZ', // Language
                             styleOptions: {
